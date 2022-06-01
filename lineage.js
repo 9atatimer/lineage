@@ -301,7 +301,7 @@ function getKids(person, spouse) { // get kids
     (person.dyear < spouse.dyear) ? mend=person.dyear : mend=spouse.dyear;
 
     var mspan; // number of years married
-    mspan = mend - person.myear;
+    mspan = mend - spouse.myear;
 
     var fertstart; // age of woman at time of marriage
     (person.gender=="F") ? fertstart=person.mage : fertstart=spouse.mage;

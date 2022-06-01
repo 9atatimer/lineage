@@ -667,9 +667,9 @@ function displayPerson(person) { // create and append nodes with person info
 
     // Add in the attributes for the person
     var colGender = appendColumn('gender', '',  person.gender);
-    var colBorn = appendColumn('byear', 'lived ', person.byear);
-    var colDied = appendColumn('dyear', '-', person.dyear);
-    var colWed = appendColumn('myear', ', married in year ', person.myear);
+    var colBorn = appendColumn('byear', '(lived ', person.byear);
+    var colDied = appendColumn('dyear', '- ', person.dyear);
+    var colWed = appendColumn('myear', '), married in year ', person.myear);
     var colPop = appendColumn('mage', 'at age of ', person.mage);
     var colRip = appendColumn('dage', ', passed at the age of ', person.dage);
     var colPType = appendColumn('ptype', '. Personality:', person.ptype);

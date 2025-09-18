@@ -1,3 +1,10 @@
+import './lib/seedrandom.js';
+import * as config from './lib/config.js';
+import { rollD, randgen, getOppositeGender } from './lib/utils.js';
+import { goGetPType, getPTypeName } from './lib/personality.js';
+import { getname } from './lib/name-generator.js';
+import { getbyear, getmage, getdage, getfert } from './lib/lifecycle.js';
+
 // Grabbed off of http://ja.partridgez.com/lineage.html
 // apparently (C) Jeff Partridge,
 // from a Create Commons Attribution-Noncommercial-Share Alike-3.0 United States License
@@ -18,282 +25,13 @@ function getRequestParameter(name) {
 	return results[1];
 }
 
-var RATE_married = 97;
-var RATE_remarry_barren = 15;
-var RATE_remarry_single = 5;
-var RATE_remarry_heirs = 3;
-var RATE_bachelor = 4;  // %chance refuse to marry -- applies to both men and women.
-
 var pid = 0;     // keeps track of each persons ID
 var lcolor = 0;	 // background color for each generation
 
-// Roll a D-sided dice, resulting in a number from 1 to D.
-function rollD(sides) {
-    return Math.round(Math.random() * (sides-1)) + 1;
-}
-
-// *** begin personality type generation code ***
-function goGetPType() {
-    var EI=typeEI();
-    var SN=typeSN();
-    var TF=typeTF();
-    var JP=typeJP();
-    var pType=EI+SN+TF+JP;
-    return pType;
-}
-
-function typeEI() { // these are the 4 axis of the Myers-Briggs personality types
-    var EI="";
-    var roll=""; // their distribution should approximate the frequency they
-    roll = rollD(4);	// occur in real life.
-    (roll>1) ? EI="E" :	EI="I";
-    return EI;
-}
-function typeSN() {
-    var SN="";
-    var roll="";
-    roll = rollD(4);
-    (roll>1) ? SN="S" : SN="N";
-    return SN;
-}
-function typeTF() {
-    var TF="";
-    var roll="";
-    roll = rollD(2);
-    (roll==2) ?	TF="T" : TF="F";
-    return TF;
-}
-
-function typeJP() {
-    var JP="";
-    var roll="";
-    roll = rollD(2);
-    (roll==2) ? JP="J":	JP="P";
-    return JP;
-}
-
-function getPTypeName(pType) { //apply label to personality type
-    var typeName = "";
-    switch (pType) {
-    case "ISFP": typeName="(Artisan/Composer)"; break;
-    case "ISTP": typeName="(Artisan/Crafter)"; break;
-    case "ESFP": typeName="(Artisan/Performer)"; break;
-    case "ESTP": typeName="(Artisan/Promoter)"; break;
-    case "ISFJ": typeName="(Guardian/Protector)"; break;
-    case "ISTJ": typeName="(Guardian/Inspector)"; break;
-    case "ESFJ": typeName="(Guardian/Provider)"; break;
-    case "ESTJ": typeName="(Guardian/Supervisor)"; break;
-    case "INFP": typeName="(Idealist/Healer)"; break;
-    case "INFJ": typeName="(Idealist/Counselor)"; break;
-    case "ENFP": typeName="(Idealist/Champion)"; break;
-    case "ENFJ": typeName="(Idealist/Teacher)"; break;
-    case "INTP": typeName="(Rational/Architect)"; break;
-    case "INTJ": typeName="(Rational/Mastermind)"; break;
-    case "ENTP": typeName="(Rational/Inventor)"; break;
-    case "ENTJ": typeName="(Rational/Field Marshal)"; break;
-    default: typeName=" --Oops! I didn't get the type";
-    }
-    return typeName;
-}
-// *** end personality type generation code ***
-
-// *** begin lame name generation ***
-function getname(person) {
-    if (person.gender == "M") {
-	return getEffname();
-    }
-    return getJalname();
-}
-
-function getJalname() {
-    var syl = rollD(2) + rollD(2) + rollD(2) - 2;
-    var count = 0;
-    var jname = "";
-    while (count < syl) {
-	jname = jname + getSyl();
-	count++;
-    }
-    return jname;
-}
-
-function getSyl() {
-    var roll = rollD(75)-1;
-    var sylabs=["ka", "ki", "ku", "ke", "ko",
-		"a", "i", "u", "e", "o",
-		"ta", "chi", "tsu", "te", "to",
-		"ra", "ri", "ru", "re", "ro",
-		"sa", "shi", "su", "se", "so",
-		"ma", "mi", "mu", "me", "mo",
-		"ya", "ya", "yu", "yo", "yo",
-		"na", "ni", "nu", "ne", "no",
-		"ha", "hi", "hu", "he", "ho",
-		"ta", "chi", "tsu", "te", "to",
-		"ra", "ri", "ru", "re", "ro",
-		"sa", "shi", "su", "se", "so",
-		"ma", "mi", "mu", "me", "mo",
-		"wa", "wi", "wu", "we", "wo",
-		"n", "n", "n", "n", "n" ];
-    return sylabs[roll];
-}
-
-function getEffname() {
-    var ccount = 0;
-    var vcount = 0;
-    var vanna = "";
-    var roll=0;
-    roll=rollD(6);
-    if (roll<4) {
-	vanna=get1vowel(); //does the name start with a vowel or a consonant?
-	vcount++;
-    }
-    else {
-	vanna=get1con();
-	ccount++;
-    }
-    var count = 0;
-    var letLength=rollD(6)+1; //sets length of name from 3 to 8 letters.
-    while (count < letLength)
-    {
-	if (ccount>1) {
-	    vanna=vanna+getvowels();	 //no more than 2 vowels or consonants together
-	    ccount=0;vcount++;
-	}
-	else if (vcount>1) {
-	    vanna=vanna+getcons();
-	    vcount=0;ccount++;
-	}
-	else {
-	    roll=0;
-	    roll=rollD(6);
-	    if (roll<4) {
-		vanna=vanna+getvowels();
-		vcount++;
-	    }
-	    else {
-		vanna=vanna+getcons();
-		ccount++;
-	    }
-	}
-	count++;
-    }
-    return(vanna);
-}
-
-function get1vowel() { // The frequency of letters should roughly approximate their
-    var roll=0;				 // occurance in the English language.
-    roll=rollD(10)-1;
-    var firstvowel=["A","A","A","E","E","I","I","O","U","Y"];
-    return firstvowel[roll];
-}
-function get1con() {
-    var roll=0;
-    roll=rollD(30)-1;
-    var firstcon=["B","C","D","F","G","H","J","K","L","L","L","L","M","N","P","Q","R","R","R","R","S","S","S","T","V","W","X","Y","Y","Z"];
-    return firstcon[roll];
-}
-function getvowels() {
-    var roll=0;
-    roll=rollD(10)-1;
-    var vowels=["a","a","a","e","e","i","i","o","u","y"];
-    return vowels[roll];
-}
-function getcons() {
-    var roll=0;
-    roll=rollD(30)-1;
-    var cons=["b","c","d","f","g","h","j","k","l","l","l","l","m","n","p","q","r","r","r","r","s","s","s","t","v","w","x","y","y","z"];
-    return cons[roll];
-}
 function getNewName(pid) {
     var node = getNodeFromPid(pid);
     var person = getPersonFromNode(node);
     node.firstChild.firstChild.value = getname(person);
-}
-// *** end lame name generation **
-
-function getOppositeGender(gender) { // flip gender (for the spouse) if one is given
-    var newgen = "";
-    switch(gender) {			 // otherwise randomize it
-    case "M": newgen = "F";break;
-    case "F": newgen = "M";break;
-    default:newgen = randgen();
-    }
-    return newgen;
-}
-
-function randgen() { // random gender
-    var gen;
-    (rollD(6)<4) ? gen ="M" : gen="F";
-    return gen;
-}
-
-// Determine birth year based on year of marriage and person's gender
-function getbyear(married, gender) {
-    var mage;
-
-    mage = rollD(9)+12; // women (who are likely to produce progeny) marry from age 13-21
-
-    if (gender=="M") {	 // if male, potentially add a few years
-	for (var i=0; i < 5; i++) {
-	    mage += rollD(4)-1;
-	}
-    }
-
-    var birth = married - mage;
-
-    return birth;
-}
-
-function getmage(gender) {
-    return Math.abs(getbyear(0,gender))
-}
-
-function getdage(myear , mage) { // get age they die at
-    var temp1a = rollD(20);
-    var temp1b = rollD(20);
-    var temp1;
-    (temp1a < temp1b) ? temp1=temp1a : temp1=temp1b; // temp1 is the low of 2d20
-
-    var temp2=rollD(8);
-
-    var dage;
-    if (temp2<5) {  // 50% dies as a child or teenager
-	dage=temp1;
-    } // this is to shape the prob curve of deaths
-    else if (temp2<7) {
-	dage=temp1a+20;  // 25% die in their 20-30's
-    }
-    else if (temp2==7) { // 12.5% die in their 40-50's
-	dage=temp1a+40;
-    }
-    else if (temp2==8) { // 12.5% die in their 60-70's
-	dage=temp1a+60;
-    }
-
-    if (dage && mage) {  // Generating spouse, so should be alive when married...
-	while (dage < mage) {   // if died before married, set to marriage.
-	    dage = mage;
-	}
-    }
-
-    var death = dage;
-    return death;
-}
-
-function getfert(fertyear) { // return fertility based on age
-    var chance = 0;
-    if (fertyear<14) {chance=10;}
-    if (fertyear==14) {chance=20;}
-    if (fertyear==15) {chance=40;}
-    if (fertyear==16) {chance=60;}
-    if (fertyear==17) {chance=80;}
-    if (fertyear>17 && fertyear<30) {chance=98;}
-    if (fertyear>30 && fertyear<35) {chance=80;}
-    if (fertyear>35 && fertyear<40) {chance=40;}
-    if (fertyear>40 && fertyear<45) {chance=20;}
-    if (fertyear>44) {chance=3;}
-    if (fertyear>52) {chance=1;}  // Only non-zero because of magic.
-
-    return chance;
 }
 
 function getKids(person, spouse) { // get kids
@@ -330,7 +68,7 @@ function getKids(person, spouse) { // get kids
 
 	    kid.family = true;
 
-	    if ((kid.myear > kid.dyear) || (rollD(100) <= RATE_bachelor)) {
+	    if ((kid.myear > kid.dyear) || (rollD(100) <= config.RATE_bachelor)) {
 		kid.mage =null;
 		kid.myear =null;
 		kid.family =null;
@@ -446,7 +184,7 @@ function getFamily(pid) {
     var newparent = getPersonFromPid(pid);
     debug("newparent:" + newparent);
 
-    if( rollD(100) > (100-RATE_married)) { // need to make sure marriage isn't automatic
+    if( rollD(100) > (100-config.RATE_married)) { // need to make sure marriage isn't automatic
 	var spouse = getSpouse(newparent); // get spouse
 	debug("new spouse");
 	debug("spouse.pid:" + spouse.pid);
@@ -463,9 +201,9 @@ function getFamily(pid) {
 		debug("offspring:" + offspring);
 		var newchance;
 		switch(offspring) {
-		case "0": newchance = (newparent.dyear - grief) * RATE_remarry_barren; break;
-		case "1": newchance = (newparent.dyear - grief) * RATE_remarry_single; break;
-		default: newchance = (newparent.dyear - grief) * RATE_remarry_heirs; break;
+		case "0": newchance = (newparent.dyear - grief) * config.RATE_remarry_barren; break;
+		case "1": newchance = (newparent.dyear - grief) * config.RATE_remarry_single; break;
+		default: newchance = (newparent.dyear - grief) * config.RATE_remarry_heirs; break;
 		}
 		if(rollD(100) < newchance) {
 		    debug("Remarried!");
@@ -848,3 +586,11 @@ function addCsvRow(person, bloodline, spouse) {
     csvtxt.value += rowtxt;
 }
 
+window.enableLineageUi = enableLineageUi;
+window.populateLineage = populateLineage;
+window.enableSeedUi = enableSeedUi;
+window.enableCsvUi = enableCsvUi;
+window.populateCsv = populateCsv;
+window.toggleDebugTxt = toggleDebugTxt;
+window.getNewName = getNewName;
+window.getFamily = getFamily;

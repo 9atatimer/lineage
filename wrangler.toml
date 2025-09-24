@@ -1,0 +1,27 @@
+name = "lineage-worker"
+main = "src/index.js"
+compatibility_date = "2024-03-06"
+
+# This section configures the worker to serve static assets.
+# The `bucket` key specifies the directory containing the static assets.
+[site]
+bucket = "./public"
+
+# Bindings allow your Worker to interact with Cloudflare resources.
+# For this project, we don't have any bindings yet, but this is where
+# they would be configured (e.g., for KV, D1, R2).
+
+# Environment variables for your worker.
+# These are accessible from within your Worker code via the `env` object.
+# You can define them here for development, but for production, it's recommended
+# to set them in the Cloudflare dashboard.
+# I will use environment variables for the account ID, as requested.
+# The user will need to create a .dev.vars file for local development,
+# or set these in the Cloudflare dashboard for production.
+[vars]
+# No variables needed for the worker itself yet, but this is where they would go.
+# The account ID is not a variable for the worker, but a setting for wrangler.
+# It should be set as an environment variable in the shell, e.g.,
+# export CLOUDFLARE_ACCOUNT_ID=...
+# Wrangler will automatically pick it up.
+# The same applies to CLOUDFLARE_API_TOKEN.
